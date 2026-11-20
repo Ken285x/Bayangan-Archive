@@ -1,0 +1,5 @@
+<?php
+require_once 'config/auth.php'; require_once 'config/db.php'; $title='Learning Paths';
+$paths=$pdo->query("SELECT lp.*,COUNT(lpi.id) item_count FROM Learning_paths lp LEFT JOIN Learning_path_items lpi ON lpi.path_id=lp.id WHERE lp.status='published' GROUP BY lp.id ORDER BY FIELD(lp.level,'beginner','intermediate','advanced'),lp.title")->fetchAll(); include 'partials/header.php'; ?>
+<div class="dashboard-head"><div><span class="eyebrow">GUIDED LEARNING</span><h1>Learning Paths</h1><p>Follow a structured sequence instead of browsing isolated lessons.</p></div><a class="btn small" href="my_learning.php">📊 My Learning</a></div><div class="grid2"><?php foreach($paths as $path): ?><a class="card learning-path-card" href="learning_path.php?id=<?=$path['id']?>"><span class="badge"><?=e(ucfirst($path['level']))?></span><h2>🎓 <?=e($path['title'])?></h2><p><?=e($path['description'])?></p><strong><?=e($path['item_count'])?> learning activities →</strong></a><?php endforeach; ?></div>
+<?php include 'partials/footer.php'; ?>

@@ -1,0 +1,55 @@
+BAYANGAN ARCHIVE — ADMIN ACTIVITY LOG CLEANUP
+Date: 2026-11-08
+
+Purpose
+Keep Admin Activity Log and Dashboard Recent Activity focused on meaningful administrator actions.
+Do not record individual game achievements, game completions, scores, player progress, or visitor favorite toggles as admin audit events.
+
+Changes
+1. api/save_game.php
+   - Removed the call that wrote "Completed game" into Activity_logs.
+   - Game result, score, XP, and achievement persistence logic is unchanged.
+   - Added a code comment clarifying that game data remains in game-specific tables.
+
+2. favorite.php
+   - Removed the Favorite updated activity log call and unused activity helper include.
+   - Favorite add/remove database behavior is unchanged.
+
+3. admin/dashboard.php
+   - Dashboard Recent Activity now filters to administrator actions only:
+     COALESCE(Activity_logs.actor_role, Users.role) = 'admin'
+   - This prevents older guest/player events from appearing in Recent Activity.
+
+4. admin/activity_logs.php
+   - Clarified that the page is for important administrator actions and excludes game events and visitor preferences.
+   - Existing admin-role filtering, search, date filters, and pagination are preserved.
+
+Important actions retained
+- Admin login/logout.
+- Pottery record add/update/delete.
+- Category add/delete/reorder.
+- Tutorial, learning material, terminology, source, game-content, and interactive-content management.
+- Community question answers, contribution decisions, comment report decisions, and correction decisions.
+- Administrator account creation/update/status/deletion.
+- Database backup download and player recovery administrative action.
+
+Existing historical rows
+Previously recorded game/favorite events are not deleted from Activity_logs. The Admin Activity Log and Dashboard Recent Activity filter to administrator-role events, so non-admin historical rows are excluded from these views. No database rows or tables are deleted.
+
+Verification performed
+- PHP syntax checks on changed files (if PHP CLI is available).
+- ZIP archive integrity check.
+- Static confirmation that game completion and favorite updates no longer call log_activity().
+- Static confirmation that Dashboard Recent Activity is filtered to admin-role records.
+
+Not verified in this environment
+- Live XAMPP/MySQL/browser behavior.
+- Actual click-through testing of every button.
+- Existing database migration/import behavior.
+
+Recommended live test
+1. Sign in as Admin; confirm login appears in both activity views.
+2. Add/update/delete a test pottery record; confirm each action is logged.
+3. Play a game and earn an achievement; confirm score/achievement still saves but no admin activity row is created.
+4. Add/remove a favorite (where that feature is available); confirm favorite behavior still works without admin log noise.
+5. Check Dashboard Recent Activity and Admin Activity Log for admin-only entries.

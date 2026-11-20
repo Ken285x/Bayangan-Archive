@@ -1,0 +1,9 @@
+<?php
+/** Public community leaderboard using persistent public-player keys and admin accounts. */
+require_once 'config/db.php'; require_once 'config/auth.php';
+$rows=$pdo->query("SELECT COALESCE(NULLIF(MAX(player_name),''),'Guest Player') player_name,SUM(CASE WHEN score=total AND total>0 THEN 1 ELSE 0 END) completed,SUM(points_earned) points,COUNT(*) plays FROM Game_results WHERE user_id IS NULL GROUP BY COALESCE(NULLIF(guest_key,''),CONCAT('legacy:',player_name)) ORDER BY points DESC,completed DESC,plays DESC LIMIT 50")->fetchAll();
+$accountRows=$pdo->query("SELECT u.name player_name,SUM(CASE WHEN gr.score=gr.total AND gr.total>0 THEN 1 ELSE 0 END) completed,SUM(gr.points_earned) points,COUNT(*) plays FROM Game_results gr JOIN Users u ON u.id=gr.user_id WHERE gr.user_id IS NOT NULL GROUP BY gr.user_id ORDER BY points DESC,completed DESC,plays DESC LIMIT 50")->fetchAll();
+$rows=array_merge($rows,$accountRows); usort($rows,function($a,$b){return ((int)$b['points']<=>$a['points']) ?: ((int)$b['completed']<=>$a['completed']) ?: ((int)$b['plays']<=>$a['plays']);}); $rows=array_slice($rows,0,50);
+$title='Community Leaderboard'; include 'partials/header.php'; ?>
+<div class="page-band"><div><span class="eyebrow">COMMUNITY GAMIFICATION</span><h1>🏆 Community Leaderboard</h1><p>See how players are doing across the interactive pottery games. Public players can participate with a nickname; no account is required.</p></div></div><section class="card"><div class="leaderboard public-leaderboard"><?php foreach($rows as $i=>$r): ?><div class="leaderboard-row"><strong>#<?=($i+1)?></strong><span><?=e($r['player_name'])?></span><small><?=e($r['plays'])?> plays · <?=e($r['completed'])?> completed</small><b><?=e($r['points'])?> pts</b></div><?php endforeach; if(!$rows): ?><div class="empty compact">No game results yet. Be the first to play!</div><?php endif; ?></div></section>
+<?php include 'partials/footer.php'; ?>
