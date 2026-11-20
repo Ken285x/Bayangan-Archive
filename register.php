@@ -1,0 +1,1 @@
+<?php require_once 'config/auth.php'; header('Location: login.php'); exit; ?>
